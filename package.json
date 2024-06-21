@@ -1,0 +1,28 @@
+{
+  "name": "rhino_contract",
+  "version": "1.0.0",
+  "description": "Rhinostec is a ERC20 token contract",
+  "main": "index.js",
+  "scripts": {
+    "serve": "npx hardhat node",
+    "compile": "npx hardhat compile",
+    "deploy-testnet": "npx hardhat run scripts/deploy.js --network localhost",
+    "mnemonic": "npx hardhat run scripts/mnemonic.js"
+  },
+  "author": "Rhinostec",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.5",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomiclabs/hardhat-ganache": "^2.0.1",
+    "ethers": "^6.12.0",
+    "hardhat": "^2.22.3"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.6",
+    "bip39": "^3.1.0",
+    "chai": "^4.4.1",
+    "dotenv": "^16.4.5",
+    "signale": "^1.4.0"
+  }
+}
