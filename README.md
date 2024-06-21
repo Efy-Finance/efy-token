@@ -33,5 +33,5 @@ To use the EFY Token contract in your project, follow these steps:
     ```
 2.  Install the dependencies
     ```
-        cd efytoken npm install
+        cd efy-token npm install
     ```
