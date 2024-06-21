@@ -1,4 +1,4 @@
-![EFYFInanceLogo](https://github.com/Efy-Finance/efy-token)
+![EFYFInanceLogo](https://www.efyfinance.com/assets/img/logos/efy-logo.svg)
 ## EFY Token - Smart Contract for EfyFinance
 
 EFY Token is an ERC20 token contract built using Solidity and the OpenZeppelin library. It incorporates various token standards and features, including ERC20 token transfers, burning, capping, pausing, and permitting.
