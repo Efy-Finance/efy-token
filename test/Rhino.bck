@@ -1,0 +1,258 @@
+const { expect } = require("chai");
+const { ethers } = require("hardhat");
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
+
+require('dotenv').config();
+
+/**
+ * @title Rhinostec
+ * @custom:security-contact rhinostec.com
+ */
+
+describe("Rhino Smart Contract / Rhinostec / v1.0", function () {
+
+  async function deployToken() {
+    const Token = await ethers.getContractFactory(process.env.CONTRACT_NAME);
+    const contractOwner = await ethers.getSigners();
+
+    const contractAddress = {
+      "owner": contractOwner[0],
+      "seedSales": contractOwner[1],
+      "privateSales": contractOwner[2],
+      "publicSales": contractOwner[3],
+      "ecoSystem": contractOwner[4],
+      "team": contractOwner[5],
+      "advisors": contractOwner[6],
+      "marketing": contractOwner[7],
+      "treasury": contractOwner[8],
+      "airdrop": contractOwner[9],
+      "staking": contractOwner[10],
+	  }
+
+    const memoryAddress = [
+      contractAddress.seedSales.address, // Seed Sales
+      contractAddress.privateSales.address, // Private Sales
+      contractAddress.publicSales.address,	// Public Sales
+      contractAddress.ecoSystem.address,	// Ecosystem Development
+      contractAddress.team.address,	// Team
+      contractAddress.advisors.address, // Advisors
+      contractAddress.marketing.address, // Marketing
+      contractAddress.treasury.address, // Treasury
+      contractAddress.airdrop.address, // Airdrop
+      contractAddress.staking.address // Staking
+    ]
+
+    const _allocationPercentage = {};
+
+    _allocationPercentage[contractAddress.seedSales.address] = 3;
+    _allocationPercentage[contractAddress.privateSales.address] = 5;
+    _allocationPercentage[contractAddress.publicSales.address] = 10;
+    _allocationPercentage[contractAddress.ecoSystem.address] = 17;
+    _allocationPercentage[contractAddress.team.address] = 8;
+    _allocationPercentage[contractAddress.advisors.address] = 3;
+    _allocationPercentage[contractAddress.marketing.address] = 10;
+    _allocationPercentage[contractAddress.treasury.address] = 12;
+    _allocationPercentage[contractAddress.airdrop.address] = 2;
+    _allocationPercentage[contractAddress.staking.address] = 30;
+
+    let _contractName = process.env.CONTRACT_NAME;
+    let _contractSymbol = process.env.CONTRACT_SYMBOL;
+    let _contractSupply = process.env.CONTRACT_TOTAL_SUPPLY;
+
+    const rhinoToken = await Token.deploy(_contractName, 
+										_contractSymbol, 
+										_contractSupply,
+										memoryAddress);
+    await rhinoToken.waitForDeployment();
+
+    // Fixtures can return anything you consider useful for your tests
+    return { Token, rhinoToken, contractAddress, _allocationPercentage };
+  }
+
+  it("Should return the right name and symbol", async function () {
+    const { rhinoToken } = await loadFixture(deployToken);
+
+    expect(await rhinoToken.name()).to.equal(process.env.CONTRACT_NAME);
+    expect(await rhinoToken.symbol()).to.equal(process.env.CONTRACT_SYMBOL);
+
+  });
+
+   it("Check wallets distributions", async function () {
+    const { rhinoToken, contractAddress, _allocationPercentage } = await loadFixture(deployToken);
+
+    const marketCap = process.env.CONTRACT_TOTAL_SUPPLY;
+  
+    expectedBalances = {
+      seedSales: BigInt(0),
+      privateSales: BigInt(0),
+      publicSales : BigInt(marketCap) * BigInt(_allocationPercentage[contractAddress.publicSales.address]) * BigInt(10 ** 18) / BigInt(100),
+      ecoSystem : BigInt(marketCap) * BigInt(_allocationPercentage[contractAddress.ecoSystem.address]) * BigInt(10 ** 18) / BigInt(100),
+      team : BigInt(0),
+      advisors : BigInt(0),
+      marketing : BigInt(marketCap) * BigInt(_allocationPercentage[contractAddress.marketing.address]) * BigInt(10 ** 18) / BigInt(100),
+      treasury : BigInt(marketCap) * BigInt(_allocationPercentage[contractAddress.treasury.address]) * BigInt(10 ** 18) / BigInt(100),
+      airdrop : BigInt(marketCap) * BigInt(_allocationPercentage[contractAddress.airdrop.address]) * BigInt(10 ** 18) / BigInt(100),
+      staking : BigInt(marketCap) * BigInt(_allocationPercentage[contractAddress.staking.address]) * BigInt(10 ** 18) / BigInt(100),
+    }
+
+    expect(await rhinoToken.balanceOf(contractAddress.seedSales.address)).to.equal(expectedBalances.seedSales);
+    expect(await rhinoToken.balanceOf(contractAddress.privateSales.address)).to.equal(expectedBalances.privateSales);
+    expect(await rhinoToken.balanceOf(contractAddress.publicSales.address)).to.equal(expectedBalances.publicSales);
+    expect(await rhinoToken.balanceOf(contractAddress.ecoSystem.address)).to.equal(expectedBalances.ecoSystem);
+    expect(await rhinoToken.balanceOf(contractAddress.team.address)).to.equal(expectedBalances.team);
+    expect(await rhinoToken.balanceOf(contractAddress.advisors.address)).to.equal(expectedBalances.advisors);
+    expect(await rhinoToken.balanceOf(contractAddress.marketing.address)).to.equal(expectedBalances.marketing);
+    expect(await rhinoToken.balanceOf(contractAddress.treasury.address)).to.equal(expectedBalances.treasury);
+    expect(await rhinoToken.balanceOf(contractAddress.airdrop.address)).to.equal(expectedBalances.airdrop);
+    expect(await rhinoToken.balanceOf(contractAddress.staking.address)).to.equal(expectedBalances.staking);
+
+  });
+
+  it("should allow freezing and unfreezing accounts", async function () {
+    const { rhinoToken, contractAddress } = await loadFixture(deployToken);
+
+    await rhinoToken.freezeAddress(contractAddress.seedSales.address);
+    expect(await rhinoToken.freezeAddressList(contractAddress.seedSales.address)).to.be.true;
+
+    await rhinoToken.unFreezeAddress(contractAddress.seedSales.address);
+    expect(await rhinoToken.freezeAddressList(contractAddress.seedSales.address)).to.be.false;
+  });
+
+  it("should set the burn rate to 0.1%", async function () {
+    const { rhinoToken } = await loadFixture(deployToken);
+
+    const newBurnRate = BigInt(100); // 0.1% based on 100000
+
+    await rhinoToken.setBurnRate(newBurnRate);
+    expect(await rhinoToken.burnRate()).to.equal(newBurnRate);
+  });
+
+  it("should burn 0.1% of the transferred amount", async function () {
+
+    const { rhinoToken, contractAddress } = await loadFixture(deployToken);
+
+    const transferAmount = ethers.parseUnits("1000");
+    const burnRate = await rhinoToken.burnRate();
+    const expectedBurnAmount = (transferAmount * burnRate) / BigInt(100000);
+    console.log(ethers.formatUnits(expectedBurnAmount));
+
+    const initialBalance = BigInt(await rhinoToken.balanceOf(contractAddress.treasury.address));
+    
+    await rhinoToken.connect(contractAddress.treasury).transfer(contractAddress.privateSales.address, transferAmount);
+
+    const finalBalance = BigInt(await rhinoToken.balanceOf(contractAddress.treasury.address));
+    const receivedAmount = initialBalance - finalBalance;
+    const burnedAmount = transferAmount + expectedBurnAmount;
+
+    expect(receivedAmount).to.equal(burnedAmount);
+  });
+
+  it("should not allow transfers from a frozen account", async function () {
+    const { rhinoToken, contractAddress } = await loadFixture(deployToken);
+
+    const freezeAmount = ethers.parseUnits("1000000");
+
+    // Transfer tokens from ecosystem to team
+    await rhinoToken.connect(contractAddress.ecoSystem).transfer(contractAddress.team.address, freezeAmount);
+
+    // Admin Freeze team account
+    await rhinoToken.freezeAddress(contractAddress.team.address);
+
+    // Attempt to transfer tokens from team to ecosystem
+    await expect(
+      rhinoToken.connect(contractAddress.team).transfer(contractAddress.ecoSystem, freezeAmount)
+    ).to.be.revertedWith("Rhino: Your account is frozen");
+
+    // Check balances
+    const teamBalance = await rhinoToken.balanceOf(contractAddress.team.address);
+    const ecoSystemBalance = await rhinoToken.balanceOf(contractAddress.ecoSystem.address);
+
+    expect(teamBalance).to.equal(freezeAmount);
+    expect(ecoSystemBalance).to.equal(ethers.parseUnits("169000000"));
+  });
+
+  it("should allow staking and unstaking", async function () {
+
+    const { rhinoToken, contractAddress } = await loadFixture(deployToken);
+
+    // invest 1M Rhino tokens
+    const amount = BigInt(1000000) * BigInt(10 ** 18);
+    const ecoSystemExpectedBalance = BigInt(169000000) * BigInt(10 ** 18);
+    const defaultEsystemBalance = BigInt(170000000) * BigInt(10 ** 18);
+
+    const stakingExpectedBalance = BigInt(301000000) * BigInt(10 ** 18);
+    
+    await rhinoToken.connect(contractAddress.ecoSystem).stake(amount);
+    expect(await rhinoToken.balanceOf(contractAddress.ecoSystem.address)).to.equal(ecoSystemExpectedBalance);
+    
+    expect(await rhinoToken.balanceOf(rhinoToken.STAKING_ADDRESS())).to.equal(stakingExpectedBalance);
+
+    await expect(rhinoToken.connect(contractAddress.ecoSystem).unstake()).to.be.revertedWith("Minimum staking duration is 30 days");
+    //expect(await rhinoToken.balanceOf(contractAddress.ecoSystem.address)).to.be.above(defaultEsystemBalance);
+  });
+
+  it("should allow vesting of tokens", async function () {
+    const { rhinoToken, contractAddress } = await loadFixture(deployToken);
+
+    const vestingAmount = ethers.parseUnits("1000000");
+    const initialSupply = await rhinoToken.totalSupply();
+    const initialBalance = await rhinoToken.balanceOf(contractAddress.advisors.address);
+    //console.log('initialSupply', ethers.formatUnits(initialSupply));
+    //console.log('initialBalance', ethers.formatUnits(initialBalance));
+
+    // Perform vesting
+    await rhinoToken.vesting(contractAddress.advisors.address, vestingAmount);
+
+    // Check total supply and balance after vesting
+    const finalSupply = await rhinoToken.totalSupply();
+    //console.log('finalSupply', ethers.formatUnits(finalSupply));
+    const finalBalance = BigInt(await rhinoToken.balanceOf(contractAddress.advisors.address));
+    //console.log('finalBalance', ethers.formatUnits(finalBalance));
+
+    //console.log('finalSupply', ethers.formatUnits(initialSupply + vestingAmount));
+    expect(finalSupply).to.equal(initialSupply + vestingAmount);
+    expect(finalBalance).to.equal(initialBalance + vestingAmount);
+  });
+
+  it("should not allow vesting more than the allocation limit", async function () {
+    const { rhinoToken, contractAddress, _allocationPercentage } = await loadFixture(deployToken);
+
+    const allocationPercentage = BigInt(_allocationPercentage[contractAddress.advisors.address]);
+    const allocationLimit = (BigInt(await rhinoToken.cap()) * allocationPercentage) / BigInt(100);
+    //console.log('allocationLimit', ethers.formatUnits(allocationLimit));
+
+    // Attempt to vest more than the allocation limit
+    const exceedingAmount = ethers.parseUnits("1000000") + allocationLimit;
+    //console.log('exceedingAmount', ethers.formatUnits(exceedingAmount));
+
+    await expect(
+      rhinoToken.vesting(contractAddress.advisors.address, exceedingAmount)
+    ).to.be.revertedWith("Rhino: Allocation exceeded");
+
+  });
+
+  it("should not allow vesting more than the total supply", async function () {
+
+    const { rhinoToken, contractAddress } = await loadFixture(deployToken);
+
+    const totalSupply = BigInt(await rhinoToken.totalSupply());
+    const exceedingAmount = BigInt(await rhinoToken.cap()) - totalSupply + ethers.parseUnits("1000000");
+
+    // Attempt to vest more than the remaining total supply
+    await expect(
+      rhinoToken.vesting(contractAddress.team.address, exceedingAmount)
+    ).to.be.revertedWith(/Rhino: (Allocation exceeded|Max supply exceeded)/);
+  });
+
+
+   /*it("should allow burn tokens", async function () {
+
+    const { rhinoToken, contractAddress } = await loadFixture(deployToken);
+
+    const burnAmount = BigInt(1000000) * BigInt(10 ** 18);
+
+    const initialSupply = await rhinoToken.totalSupply();
+    const burn = await rhinoToken.connect(contractAddress.staking).burn(burnAmount);
+  });*/
+
+});

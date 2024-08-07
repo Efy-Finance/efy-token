@@ -107,6 +107,8 @@ async function main() {
 	const gasCost = BigInt(estimatedGas) * BigInt(gasPrice);
 
 	loggin.info(`Estimated deployment cost: ${ethers.formatUnits(gasCost)} ETH`);
+
+	console.log('\n');
 	
 	const rhinoToken = await Rhino.deploy(_contractName, 
 										_contractSymbol, 
@@ -117,6 +119,21 @@ async function main() {
 
 	let deployedAddress = await rhinoToken.getAddress();
 	loggin.success(`${_contractName} deployed to: ${deployedAddress}`)
+
+	let stakingContract = await rhinoToken.stakingContract();
+	loggin.success(`Staking Contract deployed to: ${stakingContract}`);
+
+	let whitelistContract = await rhinoToken.whiteListContract();
+	loggin.success(`Whitelist Contract deployed to: ${whitelistContract}`);
+
+	let mintContract = await rhinoToken.mintContract();
+	loggin.success(`Mint Contract deployed to: ${mintContract}`);
+
+	let configContract = await rhinoToken.configContract();
+	loggin.success(`EFYConfig Contract deployed to: ${configContract}`);
+
+	//const deployedFile = path.resolve(__dirname, "../deployed.txt");
+	//fs.writeFileSync(constructorArgsPath, JSON.stringify(constructorArgs, null, 2), "utf8");
 
 	console.log('\n');
 

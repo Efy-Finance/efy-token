@@ -5,6 +5,7 @@ require("dotenv").config();
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   defaultNetwork: "localhost",
+  allowUnlimitedContractSize: true,
   networks: {
     localhost: {
       url: "http://127.0.0.1:8545",
@@ -41,5 +42,14 @@ module.exports = {
   sourcify: {
     enabled: true
   },
-  solidity: "0.8.8",
+  solidity: {
+    version: "0.8.8",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 1000,
+      },
+    },
+  },
+  allowUnlimitedContractSize: true,
 };

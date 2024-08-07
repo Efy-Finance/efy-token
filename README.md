@@ -1,11 +1,11 @@
-![EFYFInanceLogo](https://www.efyfinance.com/assets/img/logos/efy-logo.svg)
-## EFY Token - Smart Contract for EfyFinance
+![RhinostecLogo](https://www.rhinostec.com/assets/img/Rhinostec-logo.svg)
+## Rhinostec - Smart Contract for EfyFinance
 
-EFY Token is an ERC20 token contract built using Solidity and the OpenZeppelin library. It incorporates various token standards and features, including ERC20 token transfers, burning, capping, pausing, and permitting.
+Rhino Token is an ERC20 token contract built using Solidity and the OpenZeppelin library. It incorporates various token standards and features, including ERC20 token transfers, burning, capping, pausing, and permitting.
 
 Features
 
-**ERC20 Token:** EFY Token follows the ERC20 token standard, allowing for basic token transfers and balance management.
+**ERC20 Token:** Rhino Token follows the ERC20 token standard, allowing for basic token transfers and balance management.
 
 **Burnable:** Tokens can be burned (destroyed) by token holders, reducing the total supply.
 
@@ -25,13 +25,13 @@ Features
 
 **Burn on Transfer**: A configurable percentage of tokens can be burned during each transfer.
 
-To use the EFY Token contract in your project, follow these steps:
+To use the Rhino Token contract in your project, follow these steps:
 
 1.  Clone the repository:
     ```
-        git clone https://github.com/Efy-Finance/efytoken
+        git clone https://github.com/dtowers10/rhino_token
     ```
 2.  Install the dependencies
     ```
-        cd efy-token npm install
+        cd rhino-token npm install
     ```
