@@ -15,18 +15,27 @@ contract EFYWhitelist is Ownable {
     event FrozenAccount(address indexed account);
     event UnFrozenAccount(address indexed account);
 
-    constructor() {
+    address public immutable efyToken;
+
+    modifier onlyEFYFinance() {
+        require(msg.sender == address(efyToken), "EFYWhitelist: Only EFYFinance contract can call this function");
+        _;
+    }
+
+    constructor(address efy, address safeOwner) {
+        efyToken = efy;
+        _transferOwnership(safeOwner);
     }
 
     // Administrative function to freeze an address
-    function freezeAddress(address account) external onlyOwner {
+    function freezeAddress(address account) external onlyEFYFinance {
         require(!_freezeList[account], "EFY Blacklist: account is already frozen");
         _freezeList[account] = true;
         emit FrozenAccount(account);
     }
 
     // Administrative function to unfreeze an address
-    function unFreezeAddress(address account) external onlyOwner {
+    function unFreezeAddress(address account) external onlyEFYFinance {
         require(_freezeList[account], "EFY Blacklist: account is not frozen");
         delete _freezeList[account];
         emit UnFrozenAccount(account);
