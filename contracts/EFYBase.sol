@@ -9,15 +9,15 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  */
 
 contract EFYBase is Ownable {
-    uint256 public constant INTEREST_RATE_SCALE = 100000;
-    uint256 public constant BURN_RATE_SCALE = 100000;
+    uint256 public constant INTEREST_RATE_SCALE = 100_000;
+    uint256 public constant BURN_RATE_SCALE = 100_000;
 
     uint256 private burnRate = 100; // based on 100.000
     uint256 private minStakingDuration = 30 days;
     uint256 private minStakeValue = 100_000_000_000_000_000_000; // 100 EFY as default
-    uint256 private annualInterestRate = 22000; // 22% annual interest
+    uint256 private annualInterestRate = 22_000; // 22% annual interest
     
-    bool private burnOnTransferEnabled = true;
+    bool private burnOnTransferEnabled = false;
     bool private unStakeBlockLimit = true;
 
     mapping(address => uint256) internal _allocationPercentage;
