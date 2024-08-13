@@ -30,6 +30,7 @@ contract EFYFinance is
     EFYWhitelist public whiteListContract;
     EFYBase public configContract;
 
+    // EFYFinance events
     event Staked(address indexed user, uint256 amount);
     event Unstaked(address indexed user, uint256 amount);
     event AllocationMinted(address indexed account, uint256 amount);
@@ -42,17 +43,22 @@ contract EFYFinance is
         string memory name,
         string memory symbol,
         uint256 totalSupply,
+        address safeOwner,
         address[10] memory addresses
     )
         ERC20(name, symbol)
         ERC20Capped(totalSupply * (10 ** decimals()))
         ERC20Permit(name)
     {
+        // Transfer ownership to a safeOwner
+        _transferOwnership(safeOwner);
+        
         configContract = new EFYBase(addresses, owner());
-        stakingContract = new EFYStaking(address(this), address(configContract));
+        stakingContract = new EFYStaking(address(this), address(configContract), owner());
         mintContract = new EFYMint(address(this), address(configContract), owner());
-        whiteListContract = new EFYWhitelist();
+        whiteListContract = new EFYWhitelist(address(this), owner());
 
+        // Mint Intial Supply
         _mintInitialSupply(addresses);
     }
 
@@ -110,42 +116,23 @@ contract EFYFinance is
             return;
         }
 
-        bool isBurnEnabled = configContract.isBurnEnabled();
-        uint256 transferAmount = amount;
-
         // Check if burn is enabled
-        if(isBurnEnabled) {
+        if(configContract.isBurnEnabled()) {
 
             uint256 burnRate = configContract.getBurnRate();
             uint256 burnAmount = (amount * burnRate / configContract.BURN_RATE_SCALE());
-            uint256 userBalance = balanceOf(from);
+           
+            _burn(from, burnAmount);
+            emit BurnedFee(amount, burnAmount);
 
-            if (userBalance > amount){
-                // User's balance is not enough to cover the full burn amount
-                // Adjust the burn amount based on the user's balance
-                burnAmount = userBalance - amount;
-                transferAmount = amount;
-            }
-
-            else {
-                // User's balance is not enough to cover the full burn amount
-                // Adjust the burn amount based on the user's balance
-                transferAmount = userBalance;
-                burnAmount = (transferAmount * burnRate) / configContract.BURN_RATE_SCALE();
-                transferAmount -= burnAmount;
-            }
-
-            // Burn the amount
-            super._burn(from, burnAmount);
-
-            // Emit the burn event
-            emit BurnedFee(transferAmount, burnAmount);
+            super._transfer(from, to, (amount - burnAmount));
+        
         }
 
-        // Check if the transfer amount is greater than 0
-        require(transferAmount > 0, "Transfer amount too small");
+        else {
+            super._transfer(from, to, amount);
+        }
 
-        super._transfer(from, to, transferAmount);
     }
 
      // Staking function
@@ -153,7 +140,7 @@ contract EFYFinance is
         // Check if the user has enough balance
         require(balanceOf(msg.sender) >= amount, "EFYFinance: Insufficient balance");
 
-        // Transfer the amount to the staking wallet
+        // Transfer the tokens to the treasury address for use as collateral in international trade operations.
         _transfer(msg.sender, configContract.getTreasuruyWallet(), amount);
 
         // Call the staking contract to stake the amount
