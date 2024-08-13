@@ -21,17 +21,24 @@ contract EFYMint is Ownable {
     EFYBase public configContract;
 
     mapping(address => uint256) internal _allocationMinted;
+    uint256 public immutable deploymentTime;
+    uint256 public constant LOCK_PERIOD = 365 days;
 
     constructor(address _efyToken, address _configContract, address _owner) {
 
         efyToken = IEFYFinance(_efyToken);
         configContract = EFYBase(_configContract);
-        
+        deploymentTime = block.timestamp;
         _transferOwnership(_owner);
     }
 
+    modifier afterLockPeriod() {
+        require(block.timestamp >= deploymentTime + LOCK_PERIOD, "EFYMint: Minting is allowed only after the lock period");
+        _;
+    }
 
-    function mintAllocation(address account, uint256 amount) public onlyOwner {
+    // Function to mint EFY tokens based on the allocation percentage in tokenomics.
+    function mintAllocation(address account, uint256 amount) public onlyOwner afterLockPeriod {
 
         // Check if the account is eligible for vesting
         require(
