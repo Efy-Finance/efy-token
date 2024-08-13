@@ -25,12 +25,15 @@ contract EFYStaking is Ownable {
 
     mapping(address => Stake[]) private stakes;
 
+    event ChangedConfigContract(address indexed oldConfigContract, address indexed newConfigContract);
     event NewStake(address indexed account);
     event UnStake(address indexed account, uint256 amount);
 
-    constructor(address _efyToken, address _configContract) {
+    constructor(address _efyToken, address _configContract, address safeOwner) {
         efyToken = IERC20(_efyToken);
         configContract = EFYBase(_configContract);
+        
+        _transferOwnership(safeOwner);
     }
 
     modifier onlyEFYFinance() {
@@ -40,7 +43,10 @@ contract EFYStaking is Ownable {
 
     // Function to set the config contract address
     function setConfigContract(address _configContract) external onlyOwner {
+        address oldConfigContract = address(configContract);
+        
         configContract = EFYBase(_configContract);
+        emit ChangedConfigContract(oldConfigContract, address(configContract));
     }
 
     // Function to stake EFY tokens
@@ -121,7 +127,6 @@ contract EFYStaking is Ownable {
         if (userStake.amount == 0) {
             return 0;
         }
-    
     
         uint256 stakingDuration = block.timestamp - userStake.lastInterestCalculationTime;
 
